@@ -103,6 +103,50 @@ def load_csv(csv_path: Path) -> pd.DataFrame:
         return pd.read_csv(csv_path)
     except Exception as exc:
         raise ValueError(f"Could not read CSV file: {csv_path}") from exc
+    
+def compute_diameter_um(
+    df: pd.DataFrame,
+    area_column: str,
+    scale_factor: float,
+) -> pd.DataFrame:
+    """Compute equivalent particle diameter in microns from area in pixels^2.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        Input DataFrame containing the area column.
+    area_column : str
+        Name of the column containing particle area in pixels^2.
+    scale_factor : float
+        Conversion factor in pixels per micron.
+
+    Returns
+    -------
+    pd.DataFrame
+        Copy of the input DataFrame with a new column 'diameter_um'.
+
+    Raises
+    ------
+    KeyError
+        If the area column is missing.
+    ValueError
+        If area values are invalid.
+    """
+    if area_column not in df.columns:
+        raise KeyError(f"Area column '{area_column}' not found in CSV file.")
+
+    result = df.copy()
+
+    if result[area_column].isnull().any():
+        raise ValueError(f"Column '{area_column}' contains missing values.")
+
+    if (result[area_column] < 0).any():
+        raise ValueError(f"Column '{area_column}' contains negative values.")
+
+    result["diameter_um"] = (
+        2 * (result[area_column] / math.pi) ** 0.5 / scale_factor
+    )
+    return result
 
 # ---------------------------------------------------------
 # 1. Setup paths

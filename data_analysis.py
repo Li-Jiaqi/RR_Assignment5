@@ -258,6 +258,59 @@ def ensure_directory(directory: Path) -> None:
     """
     directory.mkdir(parents=True, exist_ok=True)
 
+
+def run_analysis(
+    data_dir: Path,
+    output_dir: Path,
+    csv_files: list[str],
+) -> None:
+    """Run the full particle diameter analysis workflow.
+
+    Parameters
+    ----------
+    data_dir : Path
+        Directory containing metadata and CSV input files.
+    output_dir : Path
+        Directory where outputs will be saved.
+    csv_files : list[str]
+        List of CSV file names to process.
+    """
+    ensure_directory(output_dir)
+
+    metadata_path = data_dir / "metadata.json"
+    metadata = load_metadata(metadata_path)
+    scale_factor, area_column = validate_metadata(metadata)
+
+    summary_rows: list[dict[str, float | str]] = []
+
+    for csv_name in csv_files:
+        csv_path = data_dir / csv_name
+
+        try:
+            processed_df = process_csv_file(csv_path, area_column, scale_factor)
+        except Exception as exc:
+            print(f"Skipping {csv_name}: {exc}")
+            continue
+
+        processed_output_path = output_dir / f"processed_{csv_name}"
+        processed_df.to_csv(processed_output_path, index=False)
+
+        sample_label = get_sample_label(metadata, csv_name)
+        diameters = processed_df["diameter_um"]
+
+        summary_rows.append(summarise_diameters(sample_label, diameters))
+
+        histogram_name = f"hist_{Path(csv_name).stem}.png"
+        histogram_path = output_dir / histogram_name
+        plot_histogram(diameters, sample_label, histogram_path)
+
+    if not summary_rows:
+        raise RuntimeError("No files were successfully processed.")
+
+    summary_df = pd.DataFrame(summary_rows)
+    summary_df.to_csv(output_dir / "summary_table.csv", index=False)
+
+    print(f"Processing complete. Files saved in: {output_dir.resolve()}")
 # ---------------------------------------------------------
 # 1. Setup paths
 # ---------------------------------------------------------

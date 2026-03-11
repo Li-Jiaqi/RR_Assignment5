@@ -38,6 +38,44 @@ def load_metadata(metadata_path: Path) -> dict[str, Any]:
 
     return metadata
 
+def validate_metadata(metadata: dict[str, Any]) -> tuple[float, str]:
+    """Validate required metadata fields.
+
+    Parameters
+    ----------
+    metadata : dict[str, Any]
+        Metadata dictionary.
+
+    Returns
+    -------
+    tuple[float, str]
+        Scale factor (px per micron) and area column name.
+
+    Raises
+    ------
+    KeyError
+        If required metadata fields are missing.
+    ValueError
+        If values are invalid.
+    """
+    required_keys = ["scale-factor-px-micron", "area"]
+    for key in required_keys:
+        if key not in metadata:
+            raise KeyError(f"Required metadata key missing: {key}")
+
+    scale_factor = metadata["scale-factor-px-micron"]
+    area_column = metadata["area"]
+
+    if not isinstance(scale_factor, (int, float)) or scale_factor <= 0:
+        raise ValueError(
+            "'scale-factor-px-micron' must be a positive number."
+        )
+
+    if not isinstance(area_column, str) or not area_column.strip():
+        raise ValueError("'area' must be a non-empty string.")
+
+    return float(scale_factor), area_column
+
 # ---------------------------------------------------------
 # 1. Setup paths
 # ---------------------------------------------------------

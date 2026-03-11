@@ -148,6 +148,116 @@ def compute_diameter_um(
     )
     return result
 
+def process_csv_file(
+    csv_path: Path,
+    area_column: str,
+    scale_factor: float,
+) -> pd.DataFrame:
+    """Load and process one CSV file.
+
+    Parameters
+    ----------
+    csv_path : Path
+        Path to input CSV file.
+    area_column : str
+        Name of area column in pixels^2.
+    scale_factor : float
+        Conversion factor in pixels per micron.
+
+    Returns
+    -------
+    pd.DataFrame
+        Processed DataFrame with diameter column.
+    """
+    df = load_csv(csv_path)
+    return compute_diameter_um(df, area_column, scale_factor)
+
+
+def get_sample_label(metadata: dict[str, Any], csv_name: str) -> str:
+    """Return the human-readable sample label for a CSV file.
+
+    Parameters
+    ----------
+    metadata : dict[str, Any]
+        Metadata dictionary.
+    csv_name : str
+        CSV file name.
+
+    Returns
+    -------
+    str
+        Sample label.
+
+    Notes
+    -----
+    If the sample label is not present in metadata, the file stem is used.
+    """
+    return str(metadata.get(csv_name, Path(csv_name).stem))
+
+
+def summarise_diameters(sample_label: str, diameters: pd.Series) -> dict[str, float | str]:
+    """Compute summary statistics for a diameter series.
+
+    Parameters
+    ----------
+    sample_label : str
+        Human-readable sample name.
+    diameters : pd.Series
+        Series containing diameter values in microns.
+
+    Returns
+    -------
+    dict[str, float | str]
+        Dictionary of summary statistics.
+    """
+    return {
+        "sample": sample_label,
+        "min_diameter_um": float(diameters.min()),
+        "max_diameter_um": float(diameters.max()),
+        "median_diameter_um": float(diameters.median()),
+        "mean_diameter_um": float(diameters.mean()),
+    }
+
+
+def plot_histogram(
+    diameters: pd.Series,
+    sample_label: str,
+    output_path: Path,
+    bins: int = 20,
+) -> None:
+    """Plot and save a histogram of particle diameters.
+
+    Parameters
+    ----------
+    diameters : pd.Series
+        Diameter values in microns.
+    sample_label : str
+        Human-readable sample name.
+    output_path : Path
+        Output file path for the histogram image.
+    bins : int, optional
+        Number of histogram bins, by default 20.
+    """
+    plt.figure(figsize=(6, 4))
+    plt.hist(diameters, bins=bins, edgecolor="black")
+    plt.xlabel("Diameter (µm)")
+    plt.ylabel("Count")
+    plt.title(f"Histogram of diameters - {sample_label}")
+    plt.tight_layout()
+    plt.savefig(output_path, dpi=300)
+    plt.close()
+
+
+def ensure_directory(directory: Path) -> None:
+    """Create a directory if it does not already exist.
+
+    Parameters
+    ----------
+    directory : Path
+        Directory path to create.
+    """
+    directory.mkdir(parents=True, exist_ok=True)
+
 # ---------------------------------------------------------
 # 1. Setup paths
 # ---------------------------------------------------------

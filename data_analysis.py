@@ -7,6 +7,37 @@ import numpy as np
 import matplotlib.pyplot as plt
 from pathlib import Path
 
+def load_metadata(metadata_path: Path) -> dict[str, Any]:
+    """Load metadata from a JSON file.
+
+    Parameters
+    ----------
+    metadata_path : Path
+        Path to the metadata JSON file.
+
+    Returns
+    -------
+    dict[str, Any]
+        Parsed metadata dictionary.
+
+    Raises
+    ------
+    FileNotFoundError
+        If the metadata file does not exist.
+    ValueError
+        If the file cannot be parsed as valid JSON.
+    """
+    if not metadata_path.exists():
+        raise FileNotFoundError(f"Metadata file not found: {metadata_path}")
+
+    try:
+        with metadata_path.open("r", encoding="utf-8") as file:
+            metadata = json.load(file)
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"Invalid JSON in metadata file: {metadata_path}") from exc
+
+    return metadata
+
 # ---------------------------------------------------------
 # 1. Setup paths
 # ---------------------------------------------------------

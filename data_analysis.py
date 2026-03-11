@@ -76,6 +76,34 @@ def validate_metadata(metadata: dict[str, Any]) -> tuple[float, str]:
 
     return float(scale_factor), area_column
 
+def load_csv(csv_path: Path) -> pd.DataFrame:
+    """Load one CSV file into a DataFrame.
+
+    Parameters
+    ----------
+    csv_path : Path
+        Path to the CSV file.
+
+    Returns
+    -------
+    pd.DataFrame
+        Loaded DataFrame.
+
+    Raises
+    ------
+    FileNotFoundError
+        If the CSV file does not exist.
+    ValueError
+        If the CSV file cannot be read.
+    """
+    if not csv_path.exists():
+        raise FileNotFoundError(f"CSV file not found: {csv_path}")
+
+    try:
+        return pd.read_csv(csv_path)
+    except Exception as exc:
+        raise ValueError(f"Could not read CSV file: {csv_path}") from exc
+
 # ---------------------------------------------------------
 # 1. Setup paths
 # ---------------------------------------------------------

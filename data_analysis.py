@@ -82,3 +82,11 @@ for csv_name, df in processed_data.items():
     plt.tight_layout()
     plt.savefig(output_dir / f"hist_{csv_name.replace('.csv','')}.png", dpi=300)
     plt.close()
+
+# ---------------------------------------------------------
+# 6. Save summary table
+# ---------------------------------------------------------
+summary_df = pd.DataFrame(summary_rows)
+summary_df.to_csv(output_dir / "summary_table.csv", index=False)
+
+print("Processing complete. Files saved in 'output/' folder.")

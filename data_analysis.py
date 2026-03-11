@@ -6,6 +6,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from pathlib import Path
+from typing import Any
 
 def load_metadata(metadata_path: Path) -> dict[str, Any]:
     """Load metadata from a JSON file.
@@ -144,7 +145,7 @@ def compute_diameter_um(
         raise ValueError(f"Column '{area_column}' contains negative values.")
 
     result["diameter_um"] = (
-        2 * (result[area_column] / math.pi) ** 0.5 / scale_factor
+        2 * (result[area_column] / np.pi) ** 0.5 / scale_factor
     )
     return result
 
